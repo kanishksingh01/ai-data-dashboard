@@ -92,13 +92,13 @@ export default function Home() {
         <div className="mb-10 text-center">
           <div className="inline-flex items-center gap-2 bg-indigo-900/30 border border-indigo-700/40 text-indigo-300 text-xs px-3 py-1 rounded-full mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Live GitHub Data
+            Live · Refreshes every 5 min
           </div>
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent mb-3">
-            AI GitHub Trends
+            AI Ecosystem Radar
           </h1>
-          <p className="text-gray-400 max-w-xl mx-auto">
-            Real-time intelligence on the fastest-growing AI repositories on GitHub — trending this week and all-time leaders.
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            GitHub&apos;s trending page shows one category at a time. This aggregates six AI topic categories simultaneously — machine-learning, LLMs, generative-ai, deep-learning, LangChain, and more — deduplicates across them, and surfaces what&apos;s actually moving.
           </p>
         </div>
 

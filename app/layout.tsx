@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI GitHub Trends",
-  description: "Real-time dashboard tracking the fastest-growing AI repositories on GitHub.",
+  title: "AI Ecosystem Radar",
+  description:
+    "GitHub's trending page shows one category at a time. This aggregates six AI topic categories simultaneously and surfaces what's actually moving.",
 };
 
 export default function RootLayout({
