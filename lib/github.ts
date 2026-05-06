@@ -1,3 +1,4 @@
+import { CATEGORIES, PERIODS, type CategoryKey, type Language, type Period } from "./categories";
 import type { GithubRepo, TrendingData } from "./types";
 
 function githubHeaders(): Record<string, string> {
@@ -54,42 +55,52 @@ function dedup(repos: GithubRepo[]): GithubRepo[] {
   });
 }
 
-export async function fetchTrendingData(): Promise<TrendingData> {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
+export async function fetchTrendingData(
+  category: CategoryKey = "ai",
+  language: Language = "Any",
+  period: Period = "week"
+): Promise<TrendingData> {
+  const topics = CATEGORIES[category].topics as readonly string[];
+  const langFilter = language !== "Any" ? ` language:${language}` : "";
 
-  const aiTopics = [
-    "machine-learning",
-    "llm",
-    "artificial-intelligence",
-    "deep-learning",
-    "generative-ai",
-    "langchain",
-  ];
+  const days = PERIODS[period].days;
+  const dateFilter = days
+    ? ` created:>${new Date(Date.now() - days * 864e5).toISOString().split("T")[0]}`
+    : "";
 
-  const [weeklyResults, leaderResults] = await Promise.all([
-    Promise.all(
-      aiTopics.map((t) => searchRepos(`created:>${sevenDaysAgo} topic:${t}`, "stars", 10))
-    ),
-    Promise.all(
-      aiTopics.map((t) => searchRepos(`stars:>1000 topic:${t}`, "stars", 10))
-    ),
-  ]);
+  let weeklyRisers: GithubRepo[];
+  let allTimeLeaders: GithubRepo[];
 
-  const weeklyRisers = dedup(weeklyResults.flat())
-    .sort((a, b) => b.stargazers_count - a.stargazers_count)
-    .slice(0, 20);
+  if (topics.length === 0) {
+    // "All" category — broad search without topic filter
+    const [rising, leaders] = await Promise.all([
+      searchRepos(`stars:>20${langFilter}${dateFilter}`, "stars", 25),
+      searchRepos(`stars:>5000${langFilter}`, "stars", 25),
+    ]);
+    weeklyRisers = rising;
+    allTimeLeaders = leaders;
+  } else {
+    const [weeklyResults, leaderResults] = await Promise.all([
+      Promise.all(
+        topics.map((t) => searchRepos(`topic:${t}${langFilter}${dateFilter}`, "stars", 8))
+      ),
+      Promise.all(
+        topics.map((t) => searchRepos(`stars:>500 topic:${t}${langFilter}`, "stars", 8))
+      ),
+    ]);
+    weeklyRisers = dedup(weeklyResults.flat())
+      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .slice(0, 20);
+    allTimeLeaders = dedup(leaderResults.flat())
+      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .slice(0, 20);
+  }
 
-  const allTimeLeaders = dedup(leaderResults.flat())
-    .sort((a, b) => b.stargazers_count - a.stargazers_count)
-    .slice(0, 20);
-
-  const allRepos = [...weeklyRisers, ...allTimeLeaders];
+  const allRepos = dedup([...weeklyRisers, ...allTimeLeaders]);
 
   return {
-    weeklyRisers,
-    allTimeLeaders,
+    weeklyRisers: weeklyRisers.slice(0, 20),
+    allTimeLeaders: allTimeLeaders.slice(0, 20),
     languageBreakdown: buildLanguageBreakdown(allRepos),
     topTopics: buildTopTopics(allRepos),
     fetchedAt: new Date().toISOString(),

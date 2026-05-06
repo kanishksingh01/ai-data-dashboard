@@ -23,3 +23,9 @@ export interface TrendingData {
   topTopics: { topic: string; count: number }[];
   fetchedAt: string;
 }
+
+export interface FilterParams {
+  category: string;
+  language: string;
+  period: string;
+}
